@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Cycle Medical Tracker - Chuẩn Y Khoa</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 540px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h2 {
+            margin: 0 0 4px 0;
+            font-size: 20px;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .card-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #334155;
+            font-size: 12px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+            background: #fff;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        button:hover {
+            background: #4338ca;
+        }
+
+        /* Biểu đồ vòng tròn chi tiết từng ngày */
+        .medical-wheel-container {
+            margin-top: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .wheel-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .day-cell span {
+            font-size: 9px;
+            font-weight: normal;
+        }
+
+        /* Màu sắc chuẩn theo sơ đồ y tế */
+        .cell-period { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; } /* Hành kinh - Đỏ */
+        .cell-fertile { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; } /* Rụng trứng - Xanh lá */
+        .cell-safe-rel { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; } /* An toàn tương đối - Xám */
+        .cell-luteal { background-color: #fef3c7; color: #92400e; border-color: #fde68a; } /* Hoàng thể - Vàng */
+        
+        .highlight-cell {
+            box-shadow: 0 0 0 3px #4f46e5 !important;
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .legend-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+            font-size: 11px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* Kết quả & AI */
+        .result-box {
+            margin-top: 15px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            display: none;
+            border-left: 5px solid var(--primary);
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .safe { background-color: #dcfce7; color: #166534; }
+        .danger { background-color: #fee2e2; color: #991b1b; }
+        .warning { background-color: #fef3c7; color: #92400e; }
+        .info { background-color: #e0f2fe; color: #0369a1; }
+        .result-desc { margin: 0; font-size: 12px; line-height: 1.4; color: #334155; }
+
+        .ai-chat-box {
+            margin-top: 15px;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 12px;
+            padding: 12px;
+            display: none;
+        }
+        .ai-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4338ca;
+            margin-bottom: 6px;
+        }
+        .ai-content {
+            font-size: 12px;
+            color: #312e81;
+            line-height: 1.5;
+        }
+        .note {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 15px;
+            text-align: center;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>🏥 VIP Cycle Medical Tracker</h2>
+        <p>Mô hình biểu đồ sinh học chuẩn y khoa & Phân tích chuyên sâu</p>
+    </div>
+    
+    <!-- 1. Ngày kinh -->
+    <div class="card-box">
+        <div class="section-title">1. Kỳ kinh gần nhất</div>
+        <div class="form-group">
+            <label>Ngày bắt đầu:</label>
+            <div class="row">
+                <div class="col"><select id="startDay"></select></div>
+                <div class="col"><select id="startMonth"></select></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Thông số -->
+    <div class="card-box">
+        <div class="section-title">2. Thông số chu kỳ</div>
+        <div class="row">
+            <div class="col form-group">
+                <label for="cycleLength">Tổng chu kỳ:</label>
+                <select id="cycleLength">
+                    <option value="26">26 ngày</option>
+                    <option value="27" selected>27 ngày</option>
+                    <option value="28">28 ngày</option>
+                    <option value="29">29 ngày</option>
+                    <option value="30">30 ngày</option>
+                </select>
+            </div>
+            <div class="col form-group">
+                <label for="periodLength">Số ngày hành kinh:</label>
+                <select id="periodLength">
+                    <option value="4">4 ngày</option>
+                    <option value="5" selected>5 ngày</option>
+                    <option value="6">6 ngày</option>
+                    <option value="7">7 ngày</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Kiểm tra ngày -->
+    <div class="card-box">
+        <div class="section-title">3. Ngày cần kiểm tra thực tế</div>
+        <div class="form-group">
+            <label>Chọn ngày muốn xem:</label>
+            <div class="row">
+                <div class="col"><select id="checkDay"></select></div>
+                <div class="col"><select id="checkMonth"></select></div>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="analyzeMedicalCycle()">🚀 Phân Tích & Hiển Thị Sơ Đồ Y Khoa</button>
+
+    <!-- Kết quả chi tiết ngày chọn -->
+    <div class="result-box" id="resultContainer">
+        <h3>KẾT QUẢ ĐÁNH GIÁ NGÀY CHỌN</h3>
+        <div id="statusBadge" class="badge"></div>
+        <p id="resultText" class="result-desc"></p>
+    </div>
+
+    <!-- Biểu đồ dạng lưới vòng tròn chuẩn y khoa -->
+    <div class="medical-wheel-container" id="wheelContainer">
+        <div class="section-title" style="margin-bottom: 4px;">📊 Sơ Đồ Vòng Tròn Chu Kỳ (Chi Tiết Từng Ngày)</div>
+        <p style="font-size: 11px; color: #64748b; margin: 0 0 10px 0;">Ô có viền đậm là ngày bạn đang chọn kiểm tra</p>
+        <div class="wheel-grid" id="wheelGrid"></div>
+        
+        <div class="legend-box">
+            <div class="legend-item"><span class="dot" style="background:#fee2e2"></span> Hành kinh</div>
+            <div class="legend-item"><span class="dot" style="background:#f1f5f9"></span> Nang trứng (Tương đối)</div>
+            <div class="legend-item"><span class="dot" style="background:#dcfce7"></span> Rụng trứng (Nguy hiểm)</div>
+            <div class="legend-item"><span class="dot" style="background:#fef3c7"></span> Hoàng thể (Tuyệt đối)</div>
+        </div>
+    </div>
+
+    <!-- AI Gợi ý chuyên sâu -->
+    <div class="ai-chat-box" id="aiChatBox">
+        <div class="ai-title">🤖 Trợ Lý Y Khoa & Gợi Ý Tránh Thai</div>
+        <div class="ai-content" id="aiSuggestionText"></div>
+    </div>
+
+    <div class="note">
+        💡 Công cụ tích hợp mô hình sinh học chuẩn xác nhằm hỗ trợ quản lý sức khỏe cá nhân hiệu quả.
+    </div>
+</div>
+
+<script>
+    const months = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+
+    function populateSelects() {
+        const startDaySelect = document.getElementById('startDay');
+        const checkDaySelect = document.getElementById('checkDay');
+        const startMonthSelect = document.getElementById('startMonth');
+        const checkMonthSelect = document.getElementById('checkMonth');
+
+        for (let i = 1; i <= 31; i++) {
+            startDaySelect.add(new Option(`Ngày ${i}`, i));
+            checkDaySelect.add(new Option(`Ngày ${i}`, i));
+        }
+
+        months.forEach((m, index) => {
+            startMonthSelect.add(new Option(m, index + 1));
+            checkMonthSelect.add(new Option(m, index + 1));
+        });
+
+        const today = new Date();
+        startDaySelect.value = today.getDate();
+        startMonthSelect.value = today.getMonth() + 1;
+        checkDaySelect.value = today.getDate();
+        checkMonthSelect.value = today.getMonth() + 1;
+    }
+
+    populateSelects();
+
+    function getDayCategory(dayNum, cycleLength, periodLength) {
+        const ovulationDay = cycleLength - 14; 
+        const fertileStart = ovulationDay - 4; 
+
+        if (dayNum <= periodLength) {
+            return { type: 'period', class: 'cell-period', name: 'Hành kinh' };
+        } else if (dayNum >= fertileStart && dayNum <= ovulationDay + 1) {
+            return { type: 'fertile', class: 'cell-fertile', name: 'Rụng trứng' };
+        } else if (dayNum > periodLength && dayNum < fertileStart) {
+            return { type: 'safe_rel', class: 'cell-safe-rel', name: 'Nang trứng' };
+        } else {
+            return { type: 'luteal', class: 'cell-luteal', name: 'Hoàng thể' };
+        }
+    }
+
+    function analyzeMedicalCycle() {
+        const sDay = parseInt(document.getElementById('startDay').value);
+        const sMonth = parseInt(document.getElementById('startMonth').value);
+        const cDay = parseInt(document.getElementById('checkDay').value);
+        const cMonth = parseInt(document.getElementById('checkMonth').value);
+        
+        const cycleLength = parseInt(document.getElementById('cycleLength').value);
+        const periodLength = parseInt(document.getElementById('periodLength').value);
+
+        const year = new Date().getFullYear();
+        const startDate = new Date(year, sMonth - 1, sDay);
+        const checkDate = new Date(year, cMonth - 1, cDay);
+
+        let diffTime = checkDate - startDate;
+        let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        if (diffDays < 1) {
+            diffDays = ((diffDays % cycleLength) + cycleLength) % cycleLength;
+            if (diffDays === 0) diffDays = cycleLength;
+        } else {
+            diffDays = ((diffDays - 1) % cycleLength) + 1;
+        }
+
+        // 1. Phân tích chi tiết ngày chọn
+        const badge = document.getElementById('statusBadge');
+        const text = document.getElementById('resultText');
+        const container = document.getElementById('resultContainer');
+        container.style.display = 'block';
+
+        const ovulationDay = cycleLength - 14; 
+        const fertileStart = ovulationDay - 4; 
+
+        let statusTitle = "";
+        let statusDesc = "";
+        let badgeClass = "";
+
+        if (diffDays <= periodLength) {
+            badgeClass = 'warning'; statusTitle = `Ngày thứ ${diffDays} • Đang hành kinh`; statusDesc = 'Đang trong thời gian hành kinh.';
+        } else if (diffDays === fertileStart) {
+            badgeClass = 'danger'; statusTitle = `Ngày thứ ${diffDays} • Ngày bắt đầu có khả năng thụ thai`; statusDesc = 'Đây là ngày đầu tiên trong cửa sổ thụ thai.';
+        } else if (diffDays === ovulationDay) {
+            badgeClass = 'danger'; statusTitle = `Ngày thứ ${diffDays} • Ngày trứng rụng (Khả năng thụ thai cao nhất)`; statusDesc = 'Dựa trên chu kỳ, đây là ngày trứng rụng, tỷ lệ thụ thai đạt đỉnh cao nhất.';
+        } else if (diffDays > fertileStart && diffDays <= ovulationDay + 1) {
+            badgeClass = 'danger'; statusTitle = `Ngày thứ ${diffDays} • Cửa sổ rụng trứng (Nguy hiểm)`; statusDesc = 'Giai đoạn dễ thụ thai cao, cần sử dụng biện pháp bảo vệ nếu tránh thai.';
+        } else if (diffDays > periodLength && diffDays < fertileStart) {
+            badgeClass = 'info'; statusTitle = `Ngày thứ ${diffDays} • Ngày an toàn tương đối (Giai đoạn nang trứng)`; statusDesc = 'Khả năng thụ thai thấp hơn nhưng vẫn có rủi ro nhỏ nếu trứng rụng sớm.';
+        } else {
+            badgeClass = 'safe'; statusTitle = `Ngày thứ ${diffDays} • Ngày an toàn tuyệt đối (Giai đoạn hoàng thể)`; statusDesc = 'Khả năng mang thai cực kỳ thấp, an toàn để quan hệ, chờ kỳ kinh mới.';
+        }
+
+        badge.className = `badge ${badgeClass}`;
+        badge.innerText = statusTitle;
+        text.innerText = statusDesc;
+
+        // 2. Vẽ sơ đồ lưới vòng tròn chi tiết từng ngày
+        const wheelContainer = document.getElementById('wheelContainer');
+        const wheelGrid = document.getElementById('wheelGrid');
+        wheelGrid.innerHTML = '';
+        wheelContainer.style.display = 'block';
+
+        let currDateObj = new Date(year, sMonth - 1, sDay);
+
+        for (let i = 1; i <= cycleLength; i++) {
+            let cat = getDayCategory(i, cycleLength, periodLength);
+            let cell = document.createElement('div');
+            cell.className = `day-cell ${cat.class}`;
+            if (i === diffDays) {
+                cell.classList.add('highlight-cell');
+            }
+            
+            let dStr = currDateObj.getDate() + '/' + (currDateObj.getMonth() + 1);
+            cell.innerHTML = `N.${i}<span>${dStr}</span>`;
+            wheelGrid.appendChild(cell);
+
+            currDateObj.setDate(currDateObj.getDate() + 1);
+        }
+
+        // 3. AI Gợi ý chuyên sâu
+        const aiBox = document.getElementById('aiChatBox');
+        const aiText = document.getElementById('aiSuggestionText');
+        aiBox.style.display = 'block';
+
+        aiText.innerHTML = `🤖 <b>Phân tích chuyên sâu cho chu kỳ ${cycleLength} ngày:</b><br>` +
+            `• <b>Giai đoạn Nang trứng & Hành kinh (Ngày 1 - ${fertileStart - 1}):</b> Nửa đầu chu kỳ, trong đó ${periodLength} ngày đầu là hành kinh.<br>` +
+            `• <b>Giai đoạn Rụng trứng (Ngày ${fertileStart} - ${ovulationDay + 1}):</b> Cửa sổ vàng dễ thụ thai nhất, đỉnh điểm là ngày thứ <b>${ovulationDay}</b>. Tránh quan hệ không bảo vệ trong khung này nếu muốn tránh thai.<br>` +
+            `• <b>Giai đoạn Hoàng thể (Ngày ${ovulationDay + 2} - ${cycleLength}):</b> Giai đoạn an toàn tuyệt đối, trứng đã tiêu hủy và cơ thể chuẩn bị cho chu kỳ tiếp theo.<br>` +
+            `• <i>Lưu ý y khoa:</i> Nên theo dõi đều đặn hàng tháng để tool dự báo ngày chính xác nhất!`;
+    }
+</script>
+
+</body>
+</html>
